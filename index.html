@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Universo Para Yis ✨</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Caveat:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #080810;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f3f4f6;
+        }
+
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-handwriting { font-family: 'Caveat', cursive; }
+
+        /* Space Canvas background */
+        #spaceCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Card Effect */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Glow Effects */
+        .text-glow {
+            text-shadow: 0 0 18px rgba(253, 224, 71, 0.6), 0 0 35px rgba(253, 224, 71, 0.25);
+        }
+
+        .btn-glow {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.25);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.5);
+        }
+
+        .btn-glow:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Container transitions */
+        .step-container {
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(234, 179, 8, 0.4);
+            border-radius: 3px;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .floating-element {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes bloom {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            70% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .blooming {
+            animation: bloom 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Estilo para el botón flotante de control de música */
+        .music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .music-btn.playing {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#080810] text-white flex items-center justify-center min-h-screen relative overflow-hidden">
+
+    <!-- REPRODUCTOR DE MÚSICA DE FONDO -->
+    <audio id="bg-music" autoplay loop preload="auto">
+         <source src="Los Auténticos Decadentes - Loco (Tu Forma De Ser) (Official Audio).mp3" type="audio/mpeg">
+         Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <!-- BOTÓN FLOTANTE PARA CONTROLAR EL AUDIO -->
+    <button id="music-toggle-btn" class="music-btn" title="Activar/Pausar Música">
+      🎵 <span id="music-text">Música</span>
+    </button>
+
+    <!-- Background Space Canvas -->
+    <canvas id="spaceCanvas"></canvas>
+
+    <!-- Main App Container -->
+    <div class="relative z-10 w-full max-w-2xl px-4 py-6 flex flex-col items-center justify-center min-h-screen">
+
+        <!-- STEP 0: INTRO SCREEN -->
+        <div id="step-0" class="step-container text-center flex flex-col items-center w-full">
+            <span class="tracking-[0.3em] text-xs md:text-sm text-amber-200/80 font-cinzel mb-2 uppercase">Un universo para ti</span>
+            <p class="text-xs text-gray-400 mb-8 font-light italic">un lugar que solo existe contigo</p>
+            
+            <h1 class="text-5xl md:text-7xl font-cinzel font-bold text-glow mb-6 tracking-wide text-amber-100">
+                Yis...
+            </h1>
+
+            <p class="text-gray-300 text-sm md:text-base font-light mb-10 max-w-md leading-relaxed">
+                Encontré algo en el universo que quería mostrarte.
+            </p>
+
+            <button onclick="nextStep(1)" class="btn-glow px-9 py-4 bg-gradient-to-r from-amber-500/30 to-yellow-600/40 border border-amber-400/50 rounded-full text-amber-100 font-cinzel text-sm tracking-wider flex items-center gap-3 transition-all">
+                <span>Descubrir</span>
+                <i class="fa-solid fa-sparkles text-amber-300"></i>
+            </button>
+        </div>
+
+        <!-- STEP 1: CONSTELLATION HEART -->
+        <div id="step-1" class="step-container hidden text-center flex flex-col items-center w-full">
+            <span class="tracking-[0.25em] text-xs text-amber-200/70 font-cinzel mb-3 uppercase">Entre millones de estrellas</span>
+
+            <div class="relative my-6 w-full max-w-xs h-64 flex items-center justify-center">
+                <svg id="constellationSvg" class="w-full h-full filter drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" viewBox="0 0 200 200">
+                    <path d="M100 160 L60 120 L40 80 L60 40 L100 70 L140 40 L160 80 L140 120 Z" fill="none" stroke="rgba(251, 191, 36, 0.3)" stroke-width="1.5" stroke-dasharray="3,3" />
+                    <path id="constellationActivePath" d="M100 160 L60 120 L40 80 L60 40 L100 70 L140 40 L160 80 L140 120 Z" fill="rgba(251, 191, 36, 0.08)" stroke="rgba(251, 191, 36, 0.9)" stroke-width="2" class="transition-all duration-1000 opacity-0" />
+
+                    <!-- Star Nodes -->
+                    <circle cx="100" cy="160" r="4" class="fill-amber-300 animate-pulse" />
+                    <circle cx="60" cy="120" r="3.5" class="fill-amber-200" />
+                    <circle cx="40" cy="80" r="4" class="fill-amber-300 animate-ping" />
+                    <circle cx="60" cy="40" r="3.5" class="fill-amber-100" />
+                    <circle cx="100" cy="70" r="4" class="fill-amber-400" />
+                    <circle cx="140" cy="40" r="3.5" class="fill-amber-100" />
+                    <circle cx="160" cy="80" r="4" class="fill-amber-300 animate-ping" />
+                    <circle cx="140" cy="120" r="3.5" class="fill-amber-200" />
+                </svg>
+            </div>
+
+            <h2 id="step1-text" class="text-xl md:text-2xl font-cinzel text-amber-100 text-glow my-4 h-16 flex items-center justify-center px-4">
+                Dicen que hay millones de estrellas...
+            </h2>
+
+            <button onclick="revealConstellation()" id="constellationBtn" class="btn-glow px-8 py-3.5 bg-slate-900/80 border border-amber-400/30 rounded-full text-amber-200 font-cinzel text-xs tracking-widest uppercase transition-all">
+                Continuar ✨
+            </button>
+        </div>
+
+        <!-- STEP 2: PLANET & INTERACTIVE FLOWERS -->
+        <div id="step-2" class="step-container hidden text-center flex flex-col items-center w-full">
+            <span class="tracking-[0.2em] text-xs text-amber-200/70 font-cinzel mb-2 uppercase">Un lugar para ti</span>
+
+            <h2 id="step2-title" class="text-lg md:text-xl font-cinzel text-amber-100 text-glow mb-4 h-12 flex items-center justify-center px-4">
+                Viajé un poco más lejos y encontré un lugar que me recordó a ti.
+            </h2>
+
+            <!-- Planet Canvas -->
+            <div class="relative my-4 w-72 h-72 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-500/20 via-amber-300/10 to-indigo-500/30 blur-2xl animate-pulse"></div>
+
+                <canvas id="planetCanvas" width="260" height="260" class="relative z-10 rounded-full cursor-pointer shadow-2xl"></canvas>
+
+                <!-- Floating Cat Illustration SVG -->
+                <div id="catIllustration" class="absolute -top-4 -right-2 z-20 transition-all duration-700 opacity-0 transform translate-y-4">
+                    <div class="glass-panel p-2.5 rounded-2xl flex flex-col items-center border border-amber-300/30 floating-element">
+                        <svg class="w-12 h-12 text-amber-200 stroke-current fill-none" viewBox="0 0 100 100">
+                            <!-- Cat Ears -->
+                            <path d="M 25 35 L 35 15 L 48 32 Z" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M 75 35 L 65 15 L 52 32 Z" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Face -->
+                            <circle cx="50" cy="55" r="28" stroke-width="4"/>
+                            <!-- Eyes -->
+                            <ellipse cx="38" cy="50" rx="3" ry="5" fill="currentColor"/>
+                            <ellipse cx="62" cy="50" rx="3" ry="5" fill="currentColor"/>
+                            <!-- Whiskers -->
+                            <line x1="12" y1="50" x2="28" y2="52" stroke-width="3"/>
+                            <line x1="12" y1="58" x2="28" y2="56" stroke-width="3"/>
+                            <line x1="88" y1="50" x2="72" y2="52" stroke-width="3"/>
+                            <line x1="88" y1="58" x2="72" y2="56" stroke-width="3"/>
+                            <!-- Nose / Mouth -->
+                            <path d="M 46 60 Q 50 65 54 60" stroke-width="3"/>
+                        </svg>
+                        <span class="text-[10px] text-amber-200/90 font-handwriting text-base">"Tu sonrisa"</span>
+                    </div>
+                </div>
+
+                <!-- Floating Balloons Illustration SVG -->
+                <div id="balloonsIllustration" class="absolute -bottom-2 -left-4 z-20 transition-all duration-700 opacity-0 transform translate-y-4">
+                    <div class="glass-panel p-2 rounded-2xl flex items-center gap-2 border border-purple-400/30 floating-element" style="animation-delay: 1.5s;">
+                        <svg class="w-10 h-10" viewBox="0 0 60 70">
+                            <!-- Blue Balloon -->
+                            <ellipse cx="20" cy="25" rx="14" ry="18" fill="#3b82f6" opacity="0.85"/>
+                            <path d="M 20 43 Q 18 55 22 65" fill="none" stroke="#60a5fa" stroke-width="2"/>
+                            <!-- Red/Pink Balloon -->
+                            <ellipse cx="38" cy="20" rx="13" ry="17" fill="#ec4899" opacity="0.85"/>
+                            <path d="M 38 37 Q 40 50 35 65" fill="none" stroke="#f472b6" stroke-width="2"/>
+                        </svg>
+                        <span class="text-[10px] text-pink-200 font-handwriting text-base">"Tu clase y gracia"</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="flowerInteractivePrompt" class="my-2 h-14 flex flex-col items-center justify-center">
+                <p id="flowerInstruction" class="text-xs text-amber-200/80 italic font-light">Toca el planeta para plantar flores 🌼</p>
+                <div id="flowerBadges" class="flex flex-wrap justify-center gap-1.5 mt-2 max-w-sm"></div>
+            </div>
+
+            <button onclick="advancePlanetStory()" id="planetNextBtn" class="btn-glow px-8 py-3.5 bg-slate-900/80 border border-amber-400/30 rounded-full text-amber-200 font-cinzel text-xs tracking-widest uppercase transition-all">
+                Siguiente ✨
+            </button>
+        </div>
+
+        <!-- STEP 3: LETTER CAROUSEL -->
+        <div id="step-3" class="step-container hidden text-center flex flex-col items-center w-full">
+            <span class="tracking-[0.25em] text-xs text-amber-200/70 font-cinzel mb-3 uppercase">De Luisito para ti</span>
+
+            <div class="glass-panel w-full p-6 md:p-8 rounded-3xl border border-amber-300/20 shadow-2xl my-2 relative min-h-[340px] flex flex-col justify-between">
+                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                    <span class="text-xs font-cinzel text-amber-300/80" id="letterSectionTag">Carta • Parte 1</span>
+                    <i class="fa-solid fa-envelope-open-text text-amber-300/60 text-sm"></i>
+                </div>
+
+                <div class="my-auto py-2">
+                    <p id="letterText" class="text-gray-100 font-handwriting text-xl md:text-2xl leading-relaxed text-left">
+                        <!-- Dynamic Content -->
+                    </p>
+                </div>
+
+                <div class="flex justify-center items-center gap-2 pt-4 border-t border-white/10 mt-4" id="letterDots">
+                    <!-- Dynamic Dots -->
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-4">
+                <button onclick="prevLetterPart()" id="prevLetterBtn" class="px-5 py-2.5 bg-slate-900/60 border border-gray-700/50 rounded-full text-gray-400 text-xs font-cinzel uppercase hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+                <button onclick="nextLetterPart()" id="nextLetterBtn" class="btn-glow px-7 py-2.5 bg-gradient-to-r from-amber-500/20 to-yellow-600/30 border border-amber-400/40 rounded-full text-amber-200 text-xs font-cinzel uppercase tracking-wider">
+                    Continuar ✨
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 4: FINAL DRAWINGS & REVEAL -->
+        <div id="step-4" class="step-container hidden text-center flex flex-col items-center w-full">
+            
+            <!-- Hand-drawn SVG illustrations from original photo -->
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <!-- Blue & Pink Balloons SVG -->
+                <div class="glass-panel p-3 rounded-2xl border border-amber-300/20 floating-element">
+                    <svg class="w-16 h-20" viewBox="0 0 100 120">
+                        <!-- Blue Balloon -->
+                        <ellipse cx="35" cy="40" rx="22" ry="28" fill="#3b82f6"/>
+                        <path d="M 28 35 Q 35 30 42 35" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 35 68 Q 30 90 38 115" stroke="#60a5fa" stroke-width="2.5" fill="none"/>
+                        <!-- Pink Balloon -->
+                        <ellipse cx="68" cy="35" rx="20" ry="26" fill="#ec4899"/>
+                        <circle cx="62" cy="30" r="2.5" fill="#ffffff"/>
+                        <circle cx="74" cy="30" r="2.5" fill="#ffffff"/>
+                        <path d="M 68 61 Q 72 85 62 115" stroke="#f472b6" stroke-width="2.5" fill="none"/>
+                    </svg>
+                </div>
+
+                <!-- Cat Face SVG -->
+                <div class="glass-panel p-3 rounded-2xl border border-amber-300/20 floating-element" style="animation-delay: 1s;">
+                    <svg class="w-16 h-20 text-amber-200" viewBox="0 0 100 100">
+                        <path d="M 20 40 L 32 18 L 45 35 Z" fill="currentColor"/>
+                        <path d="M 80 40 L 68 18 L 55 35 Z" fill="currentColor"/>
+                        <circle cx="50" cy="55" r="26" fill="currentColor"/>
+                        <circle cx="38" cy="50" r="3" fill="#080810"/>
+                        <circle cx="62" cy="50" r="3" fill="#080810"/>
+                        <path d="M 46 62 Q 50 67 54 62" stroke="#080810" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+
+                <!-- Blushing Figure Doodle SVG -->
+                <div class="glass-panel p-3 rounded-2xl border border-amber-300/20 floating-element" style="animation-delay: 2s;">
+                    <svg class="w-16 h-20 stroke-current text-gray-200 fill-none" viewBox="0 0 100 100">
+                        <!-- Head -->
+                        <path d="M 30 45 Q 50 15 70 45 Q 70 65 50 65 Q 30 65 30 45 Z" stroke-width="3"/>
+                        <!-- Blushing Cheeks -->
+                        <circle cx="40" cy="52" r="3" fill="#f43f5e" stroke="none"/>
+                        <circle cx="60" cy="52" r="3" fill="#f43f5e" stroke="none"/>
+                        <!-- Eyes -->
+                        <circle cx="43" cy="45" r="2" fill="currentColor" stroke="none"/>
+                        <circle cx="57" cy="45" r="2" fill="currentColor" stroke="none"/>
+                        <!-- Hands folded -->
+                        <path d="M 35 70 Q 50 80 65 70" stroke-width="3"/>
+                    </svg>
+                </div>
+            </div>
+
+            <span class="tracking-[0.3em] text-xs text-amber-200/80 font-cinzel mb-2 uppercase">Con todo mi cariño</span>
+            
+            <h1 class="text-3xl md:text-5xl font-cinzel font-bold text-glow mb-4 text-amber-100">
+                Para Yis ❤️
+            </h1>
+
+            <p class="text-amber-200/90 font-handwriting text-2xl md:text-3xl max-w-lg mb-8 leading-relaxed">
+                "Sé que eres alguien que vale totalmente la pena para intentarlo, una persona increíble."
+            </p>
+
+            <div class="glass-panel p-6 rounded-2xl border border-amber-300/20 mb-8 w-full max-w-md text-center">
+                <p class="text-xs text-gray-300 uppercase tracking-widest font-cinzel mb-2">Firmado con sinceridad</p>
+                <p class="text-2xl font-handwriting text-amber-300">"Con cariño, Luisito."</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs justify-center">
+                <button onclick="openFullLetterModal()" class="btn-glow px-6 py-3 bg-gradient-to-r from-amber-500/30 to-yellow-500/20 border border-amber-400/40 rounded-full text-amber-100 font-cinzel text-xs tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-scroll text-amber-300"></i>
+                    <span>Carta completa</span>
+                </button>
+
+                <button onclick="restartExperience()" class="px-6 py-3 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700 rounded-full text-gray-300 font-cinzel text-xs tracking-wider transition-all">
+                    Volver a empezar ↺
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FULL LETTER MODAL -->
+    <div id="fullLetterModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl max-h-[85vh] rounded-3xl border border-amber-300/30 p-6 md:p-8 flex flex-col justify-between shadow-2xl relative">
+            
+            <button onclick="closeFullLetterModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800/80 border border-gray-600 text-gray-300 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="border-b border-amber-400/20 pb-4 mb-4">
+                <h3 class="text-xl font-cinzel text-amber-200 font-semibold tracking-wide">La Carta Completa</h3>
+                <p class="text-xs text-gray-400 font-light">Escrita por Luisito para Yis</p>
+            </div>
+
+            <div class="overflow-y-auto pr-2 my-2 space-y-6 text-left font-handwriting text-xl md:text-2xl text-gray-200 leading-relaxed">
+                <p class="text-amber-300 font-bold text-2xl">Hola, Yis :)</p>
+                
+                <p>Desconozco a qué hora vayas a leer esto, bueno estoy casi seguro que será en la noche así que espero que te haya ido bien en tu escuela y hayas llegado bien a tu casa.</p>
+                
+                <p>Bueno, la verdad espero haberte dicho un poco en persona pero si no aquí lo reitero, bueno siendo preciso la anterior semana antes del concierto encontré un sentimiento hacia ti sé que será raro pero es la verdad, bueno eres alguien muy linda, tu forma de ser espectacular el cómo eres cuando tienes confianza, el cómo te expresas, tu manera de escribir y de hacer tus trabajos escolares la concentración, la delicadeza y clase con la que los haces, si de por sí se nota que eres una persona con clase con cómo realizas tus cosas más, ahora si habláramos de algo físico serían tus ojos y tu sonrisa sobre todo tus carcajadas jeje que me hacen ahora el día y luego tu voz me hace sentir una luz increíble.</p>
+                
+                <p>Ahora dicho esto, no sé si tú me veas de la misma manera, pero siéndote sincero me gustaría que me dieras la oportunidad de conocerte más a fondo y también que tú me conozcas más y poder descubrir si entre nosotros podría surgir algo bonito. No quiero apresurar nada, simplemente me gustaría tener la oportunidad de conocerte de una manera diferente.</p>
+                
+                <p>No tienes que sentirte presionada por esta carta, prefiero que seas sincera conmigo, sea cuál sea tu respuesta. :)</p>
+                
+                <p>Solo quería que supieras lo que siento, honestamente pensaba decirlo desde que empecé a sentir por ti pero me detuve por no querer que te sintieras incómoda con mi presencia, pero algo dentro de mí me hizo querer dar este pequeño paso y sé que eres alguien que vale totalmente la pena para intentarlo, una persona increíble.</p>
+
+                <div class="pt-4 text-right">
+                    <p class="text-amber-300 font-bold text-2xl">"Con cariño, Luisito." ❤️</p>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-amber-400/20 text-center">
+                <button onclick="closeFullLetterModal()" class="px-6 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 rounded-full text-amber-200 text-xs font-cinzel">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let currentStep = 0;
+        let currentLetterIdx = 0;
+
+        const letterParagraphs = [
+            {
+                tag: "Parte 1 • Saludo",
+                text: "Hola, Yis :)<br><br>Desconozco a qué hora vayas a leer esto, bueno estoy casi seguro que será en la noche así que espero que te haya ido bien en tu escuela y hayas llegado bien a tu casa."
+            },
+            {
+                tag: "Parte 2 • Lo que admiro de ti",
+                text: "Bueno, siendo preciso la anterior semana antes del concierto encontré un sentimiento hacia ti... Sé que será raro pero es la verdad, eres alguien muy linda, tu forma de ser es espectacular, cómo te expresas, tu manera de escribir y la concentración y delicadeza con la que haces tus trabajos."
+            },
+            {
+                tag: "Parte 3 • Lo que me ilumina",
+                text: "Si habláramos de algo físico serían tus ojos y tu sonrisa, sobre todo tus carcajadas jeje que me hacen el día, y luego tu voz me hace sentir una luz increíble."
+            },
+            {
+                tag: "Parte 4 • Un deseo sincero",
+                text: "Me gustaría que me dieras la oportunidad de conocerte más a fondo y también que tú me conozcas más y poder descubrir si entre nosotros podría surgir algo bonito. No quiero apresurar nada, simplemente conocerte de una manera diferente."
+            },
+            {
+                tag: "Parte 5 • Sin presiones",
+                text: "No tienes que sentirte presionada por esta carta, prefiero que seas sincera conmigo, sea cuál sea tu respuesta. :)"
+            },
+            {
+                tag: "Parte 6 • La razón de este detalle",
+                text: "Solo quería que supieras lo que siento. Algo dentro de mí me hizo querer dar este pequeño paso y sé que eres alguien que vale totalmente la pena para intentarlo, una persona increíble.<br><br><span class='text-amber-300 font-bold'>Con cariño, Luisito. ❤️</span>"
+            }
+        ];
+
+        function showStep(stepIndex) {
+            document.querySelectorAll('.step-container').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('fade-enter-active');
+            });
+
+            const nextEl = document.getElementById(`step-${stepIndex}`);
+            if (nextEl) {
+                nextEl.classList.remove('hidden');
+                setTimeout(() => {
+                    nextEl.classList.add('fade-enter-active');
+                }, 50);
+            }
+
+            currentStep = stepIndex;
+
+            if (stepIndex === 2) {
+                initPlanet();
+            } else if (stepIndex === 3) {
+                renderLetterPart();
+            }
+        }
+
+        function nextStep(stepIndex) {
+            showStep(stepIndex);
+        }
+
+        function restartExperience() {
+            currentLetterIdx = 0;
+            planetFlowers = [];
+            showStep(0);
+        }
+
+        // STEP 1: CONSTELLATION
+        let constellationState = 0;
+        function revealConstellation() {
+            const path = document.getElementById('constellationActivePath');
+            const text = document.getElementById('step1-text');
+            const btn = document.getElementById('constellationBtn');
+
+            if (constellationState === 0) {
+                path.classList.remove('opacity-0');
+                text.innerText = "pero ninguna podría iluminar mi vida como tú.";
+                btn.innerText = "Continuar ✨";
+                constellationState = 1;
+            } else if (constellationState === 1) {
+                text.innerText = "Mi estrella favorita siempre serás tú, Yis.";
+                btn.innerText = "Viajar más lejos 🚀";
+                constellationState = 2;
+            } else {
+                nextStep(2);
+            }
+        }
+
+        // STEP 2: PLANET
+        let planetCanvas, planetCtx;
+        let planetFlowers = [];
+        const flowerCompliments = [
+            "Tus ojos", "Tu sonrisa", "Tus carcajadas", "Tu voz", "Tu elegancia", "Tu gentileza"
+        ];
+        let planetStoryStep = 0;
+
+        function initPlanet() {
+            planetCanvas = document.getElementById('planetCanvas');
+            if (!planetCanvas) return;
+            planetCtx = planetCanvas.getContext('2d');
+
+            drawPlanet();
+
+            planetCanvas.onclick = function(e) {
+                const rect = planetCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const dist = Math.hypot(x - 130, y - 130);
+                if (dist <= 120) {
+                    addFlower(x, y);
+                }
+            };
+        }
+
+        function drawPlanet() {
+            if (!planetCtx) return;
+            const ctx = planetCtx;
+            ctx.clearRect(0, 0, 260, 260);
+
+            const grad = ctx.createRadialGradient(90, 90, 10, 130, 130, 130);
+            grad.addColorStop(0, '#10b981');
+            grad.addColorStop(0.5, '#047857');
+            grad.addColorStop(0.85, '#064e3b');
+            grad.addColorStop(1, '#022c22');
+
+            ctx.beginPath();
+            ctx.arc(130, 130, 120, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.beginPath();
+            ctx.arc(110, 100, 70, 0, Math.PI * 2);
+            ctx.fill();
+
+            planetFlowers.forEach(f => {
+                drawFlowerIcon(ctx, f.x, f.y, f.scale, f.color);
+            });
+        }
+
+        function drawFlowerIcon(ctx, x, y, scale = 1, color = '#fde047') {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            ctx.fillStyle = color;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.rotate((Math.PI * 2) / 5);
+                ctx.ellipse(0, -8, 4, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function addFlower(x, y) {
+            const colors = ['#fde047', '#f472b6', '#a7f3d0', '#fbcfe8', '#fef08a'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            planetFlowers.push({ x, y, scale: 1.2, color: randomColor });
+            drawPlanet();
+
+            const badgesContainer = document.getElementById('flowerBadges');
+            if (badgesContainer) {
+                const comp = flowerCompliments[planetFlowers.length % flowerCompliments.length];
+                const badge = document.createElement('span');
+                badge.className = 'blooming text-[11px] font-handwriting bg-amber-400/20 text-amber-200 border border-amber-300/30 px-2.5 py-0.5 rounded-full shadow';
+                badge.innerText = `✨ ${comp}`;
+                badgesContainer.appendChild(badge);
+            }
+
+            if (planetFlowers.length >= 2) {
+                document.getElementById('catIllustration').classList.remove('opacity-0', 'translate-y-4');
+            }
+            if (planetFlowers.length >= 4) {
+                document.getElementById('balloonsIllustration').classList.remove('opacity-0', 'translate-y-4');
+            }
+        }
+
+        function advancePlanetStory() {
+            const title = document.getElementById('step2-title');
+            const nextBtn = document.getElementById('planetNextBtn');
+
+            if (planetStoryStep === 0) {
+                title.innerText = "No importa cuántos lugares existan... Siempre elegiría aquel donde estés tú.";
+                addFlower(130, 45);
+                addFlower(90, 60);
+                addFlower(170, 70);
+                planetStoryStep = 1;
+            } else if (planetStoryStep === 1) {
+                title.innerText = "Podría regalarte todas las flores del mundo, pero preferí regalarte un universo entero.";
+                addFlower(110, 30);
+                addFlower(150, 35);
+                nextBtn.innerText = "Leer carta ✉️";
+                planetStoryStep = 2;
+            } else {
+                nextStep(3);
+            }
+        }
+
+        // STEP 3: CAROUSEL
+        function renderLetterPart() {
+            const part = letterParagraphs[currentLetterIdx];
+            document.getElementById('letterSectionTag').innerText = part.tag;
+            document.getElementById('letterText').innerHTML = part.text;
+
+            const dotsContainer = document.getElementById('letterDots');
+            dotsContainer.innerHTML = '';
+            letterParagraphs.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${idx === currentLetterIdx ? 'bg-amber-400 w-5' : 'bg-gray-600'}`;
+                dotsContainer.appendChild(dot);
+            });
+
+            document.getElementById('prevLetterBtn').disabled = (currentLetterIdx === 0);
+
+            const nextBtn = document.getElementById('nextLetterBtn');
+            if (currentLetterIdx === letterParagraphs.length - 1) {
+                nextBtn.innerText = "Ver final ❤️";
+            } else {
+                nextBtn.innerText = "Continuar ✨";
+            }
+        }
+
+        function nextLetterPart() {
+            if (currentLetterIdx < letterParagraphs.length - 1) {
+                currentLetterIdx++;
+                renderLetterPart();
+            } else {
+                nextStep(4);
+            }
+        }
+
+        function prevLetterPart() {
+            if (currentLetterIdx > 0) {
+                currentLetterIdx--;
+                renderLetterPart();
+            }
+        }
+
+        // MODAL
+        function openFullLetterModal() {
+            document.getElementById('fullLetterModal').classList.remove('hidden');
+        }
+
+        function closeFullLetterModal() {
+            document.getElementById('fullLetterModal').classList.add('hidden');
+        }
+
+        // BACKGROUND SPACE
+        function initSpaceCanvas() {
+            const canvas = document.getElementById('spaceCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let width, height;
+            let stars = [];
+            let shootingStars = [];
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                createStars();
+            }
+
+            function createStars() {
+                stars = [];
+                const numStars = Math.floor((width * height) / 3000);
+                for (let i = 0; i < numStars; i++) {
+                    stars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.5 + 0.2,
+                        alpha: Math.random(),
+                        speed: Math.random() * 0.015 + 0.005,
+                        color: Math.random() > 0.8 ? '#fde047' : (Math.random() > 0.6 ? '#93c5fd' : '#ffffff')
+                    });
+                }
+            }
+
+            function addShootingStar() {
+                if (Math.random() < 0.02 && shootingStars.length < 3) {
+                    shootingStars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * (height / 2),
+                        length: Math.random() * 80 + 40,
+                        speed: Math.random() * 8 + 4,
+                        angle: Math.PI / 4,
+                        alpha: 1
+                    });
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                const bgGrad = ctx.createRadialGradient(width/2, height/2, 50, width/2, height/2, Math.max(width, height));
+                bgGrad.addColorStop(0, '#0f172a');
+                bgGrad.addColorStop(0.6, '#070a13');
+                bgGrad.addColorStop(1, '#020408');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, width, height);
+
+                stars.forEach(star => {
+                    star.alpha += star.speed;
+                    if (star.alpha > 1 || star.alpha < 0.1) {
+                        star.speed = -star.speed;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = star.color;
+                    ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
+                    ctx.fill();
+                });
+
+                addShootingStar();
+                shootingStars.forEach((ss, idx) => {
+                    ss.x += Math.cos(ss.angle) * ss.speed;
+                    ss.y += Math.sin(ss.angle) * ss.speed;
+                    ss.alpha -= 0.015;
+
+                    if (ss.alpha <= 0) {
+                        shootingStars.splice(idx, 1);
+                    } else {
+                        ctx.beginPath();
+                        ctx.moveTo(ss.x, ss.y);
+                        ctx.lineTo(ss.x - Math.cos(ss.angle) * ss.length, ss.y - Math.sin(ss.angle) * ss.length);
+                        ctx.strokeStyle = `rgba(253, 224, 71, ${ss.alpha})`;
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+                });
+
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            animate();
+        }
+
+        window.onload = function() {
+            initSpaceCanvas();
+            showStep(0);
+        };
+
+        // --- CÓDIGO PARA REPRODUCIR LA MÚSICA AL DAR CLIC EN "DESCUBRIR" ---
+// --- CÓDIGO ACTUALIZADO PARA AUTOPREPRODUCCIÓN AL ABRIR LA PÁGINA ---
+window.addEventListener('DOMContentLoaded', () => {
+  const audio = document.getElementById('bg-music');
+  const musicBtn = document.getElementById('music-toggle-btn');
+  
+  if (audio) {
+    audio.volume = 0.6; // Ajusta el volumen de 0.0 a 1.0 según prefieras
+    
+    // Intenta reproducir la música inmediatamente al cargar la página
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        // Si el navegador permitió la reproducción automática
+        if (musicBtn) musicBtn.classList.add('playing');
+      }).catch(error => {
+        console.log("El navegador bloqueó la reproducción automática sin interacción previa:", error);
+        
+        // RESPALDO DE SEGURIDAD: 
+        // Si el navegador bloquea el audio al abrir, sonará en cuanto el usuario dé su primer clic en la pantalla
+        const unlockAudio = () => {
+          audio.play().then(() => {
+            if (musicBtn) musicBtn.classList.add('playing');
+          });
+          document.body.removeEventListener('click', unlockAudio);
+        };
+        
+        document.body.addEventListener('click', unlockAudio);
+      });
+    }
+  }
+
+  // Control manual opcional con el botón flotante para pausar/reanudar
+  if (musicBtn && audio) {
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Evita conflictos con el evento de desbloqueo
+      if (audio.paused) {
+        audio.play();
+        musicBtn.classList.add('playing');
+      } else {
+        audio.pause();
+        musicBtn.classList.remove('playing');
+      }
+    });
+  }
+});
+    </script>
+</body>
+</html>
